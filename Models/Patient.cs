@@ -7,8 +7,9 @@ namespace medcin.Models
         public int Id { get; set; }
         public string FullName { get; set; }
         public DateTime BirthDate { get; set; }
+        public string ApplicationUserId { get; set; }
+
         [JsonIgnore]
         public List<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
-
 }

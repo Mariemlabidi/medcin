@@ -7,7 +7,6 @@ namespace medcin.Models
         public int Id { get; set; }
         public DateTime Date { get; set; }
 
-        
         public int DoctorId { get; set; }
         [JsonIgnore]
         public Doctor? Doctor { get; set; }

@@ -1,14 +1,12 @@
 ﻿using medcin.Models;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using medcin.Data;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace medcin.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     public class DoctorsController : ControllerBase
@@ -20,17 +18,16 @@ namespace medcin.Controllers
             _context = context;
         }
 
-        // GET: api/doctors
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
         {
             return await _context.Doctors
-                .Include(d => d.Availabilities) 
+                .Include(d => d.Availabilities)
                 .Include(d => d.Appointments)
                 .ToListAsync();
         }
 
-        // GET: api/doctors/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Doctor>> GetDoctor(int id)
         {
@@ -45,8 +42,9 @@ namespace medcin.Controllers
             return doctor;
         }
 
-        // POST: api/doctors
+       
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Doctor>> AddDoctor(Doctor doctor)
         {
             _context.Doctors.Add(doctor);
@@ -54,8 +52,9 @@ namespace medcin.Controllers
             return CreatedAtAction(nameof(GetDoctor), new { id = doctor.Id }, doctor);
         }
 
-        // PUT: api/doctors/5
+        
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Doctor")]
         public async Task<IActionResult> UpdateDoctor(int id, Doctor updatedDoctor)
         {
             if (id != updatedDoctor.Id)
@@ -65,7 +64,15 @@ namespace medcin.Controllers
             if (existingDoctor == null)
                 return NotFound();
 
-            // Mettre à jour les champs
+            
+            if (User.IsInRole("Doctor"))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var doctorUser = await _context.Users.FindAsync(userId);
+                if (doctorUser == null || doctorUser.UserName != existingDoctor.FullName)
+                    return Forbid();
+            }
+
             existingDoctor.FullName = updatedDoctor.FullName;
             existingDoctor.Speciality = updatedDoctor.Speciality;
 
@@ -73,8 +80,9 @@ namespace medcin.Controllers
             return NoContent();
         }
 
-        // DELETE: api/doctors/5
+        
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteDoctor(int id)
         {
             var doctor = await _context.Doctors
@@ -85,7 +93,6 @@ namespace medcin.Controllers
             if (doctor == null)
                 return NotFound();
 
-            // Supprimer les rendez-vous et disponibilités liés si nécessaire
             _context.Appointments.RemoveRange(doctor.Appointments);
             _context.Availabilities.RemoveRange(doctor.Availabilities);
             _context.Doctors.Remove(doctor);

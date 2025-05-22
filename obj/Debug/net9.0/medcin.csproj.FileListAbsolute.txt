@@ -243,3 +243,4 @@ C:\Users\kk\source\repos\medcin\medcin\obj\Debug\net9.0\refint\medcin.dll
 C:\Users\kk\source\repos\medcin\medcin\obj\Debug\net9.0\medcin.pdb
 C:\Users\kk\source\repos\medcin\medcin\obj\Debug\net9.0\medcin.genruntimeconfig.cache
 C:\Users\kk\source\repos\medcin\medcin\obj\Debug\net9.0\ref\medcin.dll
+C:\Users\kk\source\repos\medcin\medcin\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

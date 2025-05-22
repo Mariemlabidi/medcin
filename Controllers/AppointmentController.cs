@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using medcin.Models;
 using medcin.Data;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Threading.Tasks; 
 
 namespace medcin.Controllers
 {
@@ -47,19 +47,29 @@ namespace medcin.Controllers
         [HttpPost]
         public async Task<ActionResult<Appointment>> CreateAppointment(Appointment appointment)
         {
-            var doctorExists = await _context.Doctors.AnyAsync(d => d.Id == appointment.DoctorId);
+            var doctor = await _context.Doctors
+                .Include(d => d.Appointments)
+                .FirstOrDefaultAsync(d => d.Id == appointment.DoctorId);
+
             var patientExists = await _context.Patients.AnyAsync(p => p.Id == appointment.PatientId);
 
-            if (!doctorExists)
+            if (doctor == null)
                 return BadRequest("Médecin introuvable.");
+
             if (!patientExists)
                 return BadRequest("Patient introuvable.");
 
+            // Ajouter explicitement la réservation à la collection du médecin
+            doctor.Appointments.Add(appointment);
+
+            // Ajouter l'appointment au contexte
             _context.Appointments.Add(appointment);
+
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetAppointment), new { id = appointment.Id }, appointment);
         }
+
 
         // PUT: api/appointments/5
         [HttpPut("{id}")]
@@ -79,8 +89,7 @@ namespace medcin.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
-
-        // DELETE: api/appointments/5
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAppointment(int id)
         {
